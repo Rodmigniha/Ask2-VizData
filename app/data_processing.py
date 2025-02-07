@@ -1,12 +1,13 @@
-import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
-def preprocess_data(data):
-    """Effectue les étapes de prétraitement nécessaires sur le dataset."""
-    # Suppression des lignes avec des valeurs manquantes
-    data.dropna(inplace=True)
+def Drop_manq(data):
+    data.fillna(data.median(), inplace=True)
     
-    # Conversion des colonnes nécessaires au bon format
-    data['popularity'] = pd.to_numeric(data['popularity'], errors='coerce')
-    data['duration_ms'] = pd.to_numeric(data['duration_ms'], errors='coerce')
+    return data
+
+def Norm_data(data):
+    numerical_columns = data.select_dtypes(include=["float64", "int64"]).columns
+    scaler = StandardScaler()
+    data[numerical_columns] = scaler.fit_transform(data[numerical_columns])
     
     return data

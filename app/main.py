@@ -8,111 +8,177 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import StandardScaler
+from dotenv import load_dotenv
+import os
+import requests
+import json
 
-from visualizations import (
-    plot_grouped_scatter_plots,
-    plot_grouped_barplots,
-    plot_grouped_boxplots,
-    plot_grouped_histograms,
-    plot_grouped_heatmap,
-    plot_moyen
-)
+from visualization import visualiz
 
-from data_processing import preprocess_data
+from ai_interface import (
+    extract_columns_from_response,
+    extract_question_from_response,
+    )
 
-# Titre de l'application
-st.title("Musical Analysis Dashboard")
+from data_processing import Drop_manq, Norm_data
+from mapping import mapp_viz
+from statistic_indicator import statistic_indic
+
+
+st.title("Ask 2 DataVIZ")
 st.write(
         """
-        Cette application interactive aide les entreprises de production musicale à analyser 
-        les genres musicaux pour maximiser les ventes. Explorez les tendances, identifiez les genres 
-        populaires et bien plus encore !
+        Cette application permet d'analyser et de visualiser n'importe quel dataset tabulaire
+        et bien plus encore ! 
         """
     )
-# Sélection des options dans la barre latérale
-st.sidebar.subheader("Paramètres de visualisation")
-chart_type = st.sidebar.selectbox(
-    "Choisir le type de graphique",
-    ["Scatter Plot", "Bar Chart", "Boxplot", "Histogram", "Heatmap", "KMeans Clustering", "Bar plot"]
-)
 
-st.sidebar.subheader("Filtres sur popularité")
-
-# Filtrer par popularité
-min_popularity = st.sidebar.slider("Popularité minimale", 0, 100, 50)
-
-# Charger les données
-@st.cache_data
 def load_data():
-    data = pd.read_csv("hf://datasets/maharshipandya/spotify-tracks-dataset/dataset.csv")  # Remplacez par votre chemin de dataset
-    return data
+    data = st.sidebar.file_uploader("Téléversez un fichier CSV ou Excel", type=["csv", "xlsx"])
+    if data is not None:
+        try:
+            
+            if data.name.endswith(".csv"):
+                data = pd.read_csv(data)
+            else:
+                data = pd.read_excel(data)
+            
+            st.success("Fichier chargé avec succès !")
+            
+            data = Drop_manq(data)
+                    
+            return data
+        
+        except Exception as e:
+            st.error(f"Erreur lors du chargement du fichier : {e}")
+            return pd.DataFrame()
+    else:
+        st.info("Veuillez téléverser un fichier au niveau de la section Dataset pour commencer.")
+        
+    return pd.DataFrame()
 
+
+st.sidebar.subheader("Dataset")
 data = load_data()
-data=preprocess_data(data)
 
-
-# Sélectionner les colonnes numériques et catégorielles
-numerical_columns = data.select_dtypes(include=["float64", "int64"]).columns.tolist()
-categorical_columns = data.select_dtypes(include=["object", "category"]).columns.tolist()
-
-# Sélectionner les variables selon le type de graphique
-variable_1, variable_2 = None, None
-if chart_type in ["Scatter Plot", "Boxplot", "Histogram", "Heatmap"]:
-    variable_1 = st.sidebar.selectbox("Variable 1", numerical_columns)
-    variable_2 = st.sidebar.selectbox("Variable 2", numerical_columns)
-elif chart_type == "Bar Chart":
-    variable_1 = st.sidebar.selectbox("Variable catégorielle", categorical_columns)
+if data.empty:
+    st.sidebar.warning("Aucune donnée chargée. Veuillez téléverser un fichier.")
+else:
     
-elif chart_type == "Bar plot":
-    variable_1 = st.sidebar.selectbox("Variable catégorielle", categorical_columns)
-    variable_2 = st.sidebar.selectbox("Variable 2", numerical_columns)
-
-# Paramètres pour le clustering KMeans
-if chart_type == "KMeans Clustering":
-    variable_1 = st.sidebar.selectbox("Composante 1 graphique", numerical_columns)
-    variable_2 = st.sidebar.selectbox("Composante 2 graphique", numerical_columns)
-    n_clusters = st.sidebar.slider("Nombre de clusters", min_value=2, max_value=10, value=3)
-
-
-# Bouton pour générer le graphique
-if st.sidebar.button("Générer le graphique"):
+    st.sidebar.subheader("Paramètres de visualisation")
     
-    filtered_data = data[data['popularity'] >= min_popularity]
-    st.write(f"Nombre de morceaux après filtrage : {len(filtered_data)}")
+    min_val0 = st.sidebar.slider("valeur minimale de la variable de filtre", 0, 100, 80)
+      
+    numerical_columns = data.select_dtypes(include=["float64", "int64"]).columns.tolist()
+    categorical_columns = data.select_dtypes(include=["object", "category"]).columns.tolist()
     
-    if chart_type == "KMeans Clustering":
-        st.subheader(f"Clustering KMeans avec {n_clusters} clusters sur {variable_1} et {variable_2}")
-        # Appliquer K-Means avec les deux variables choisies
-        kmeans = KMeans(n_clusters=n_clusters)
-        clusters = kmeans.fit_predict(filtered_data[[variable_1, variable_2]])
+    variable_0 = st.sidebar.selectbox("Variable pour filtrer les données", numerical_columns)
+    filtered_data = data[data[variable_0] >= min_val0]
+    
+    st.subheader("Posez une question sur le dataset")
+    user_question = st.text_input("Votre question :", placeholder= f"Ex: Quelle est la médiane de {numerical_columns[0]} ?")
+    dataset_description = data.describe()  
+    first_rows = data.head()  
+    dataset_size = data.shape
+    dataset_col = data.dtypes.to_dict()
+    chart_map =mapp_viz()
 
-        # Ajouter les clusters au dataset
-        filtered_data['Cluster'] = clusters
+    load_dotenv()
+    api_key = os.getenv('claude-api-key')
+    CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
-        # Visualisation des clusters
-        fig, ax = plt.subplots(figsize=(10, 6))
-        sns.scatterplot(data=filtered_data, x=variable_1, y=variable_2, hue='Cluster', palette="viridis", ax=ax)
-        ax.set_xlabel(variable_1)
-        ax.set_ylabel(variable_2)
-        ax.set_title(f"KMeans Clustering sur {variable_1} et {variable_2}")
-        st.pyplot(fig)
+   
+    def get_claude_response_with_dataset_info(question):
+        
+        # Formuler un prompt détaillé pour Claude
+        prompt = f"""
+        Voici un dataset avec les informations suivantes :
+        
+        Taille du dataset : {dataset_size}
+        Colonnes et types de données : {dataset_col}
+        Statistiques descriptives : {dataset_description}
+        Exemples de premières lignes : {first_rows}
+        Dictionnaire de mapping Chart_map :{chart_map}
 
-    # Les autres graphiques
-    elif chart_type == "Scatter Plot":
-        st.subheader(f"Scatter Plot de {variable_1} et {variable_2}")
-        plot_grouped_scatter_plots(filtered_data, variable_1, variable_2)
-    elif chart_type == "Bar Chart":
-        st.subheader(f"Bar Chart de {variable_1} ")
-        plot_grouped_barplots(filtered_data, variable_1)
-    elif chart_type == "Boxplot":
-        st.subheader(f"Boxplot de {variable_1}")
-        plot_grouped_boxplots(filtered_data, variable_1)
-    elif chart_type == "Histogram":
-        st.subheader(f"Histogramme de {variable_1}")
-        plot_grouped_histograms(filtered_data, variable_1)
-    elif chart_type == "Heatmap":
-        st.subheader(f"Heatmap de {variable_1} et {variable_2}")
-        plot_grouped_heatmap(filtered_data, variable_1, variable_2)
-    elif chart_type == "Bar plot":
-        st.subheader(f"Bar plot de {variable_2} moyen(ne) par {variable_1}")
-        plot_moyen(filtered_data, variable_1, variable_2)
+        L'utilisateur pose la question suivante : {question}
+
+        Sans justifier ta réponse, Donne la clé du dictionnaire chart_map correspondant le plus à la question
+        de l'utilisateur sous le format JSON suivant {{"Question": ["a"]}} où a et b sont des clés distinctes.
+        À la fin de cette réponse, liste les colonnes concernées sous le format JSON suivant :
+    {{"colonnes_concernees": ["nom_colonne1", "nom_colonne2"]}}
+        """
+        
+        headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        
+        payload = {
+            "model": "claude-2",  
+            "max_tokens": 300,  
+            "messages": [
+                {"role": "user", "content": prompt}
+            ]
+        }
+
+        response = requests.post(CLAUDE_API_URL, headers=headers, json=payload)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            if "content" in response_data and isinstance(response_data["content"], list):
+                
+                formatted_response = "\n".join([item["text"] for item in response_data["content"] if "text" in item])
+                return formatted_response
+            else:
+                return "Format de réponse inattendu."
+        else:
+            return f"Erreur API : {response.status_code}, {response.text}"
+        
+    if user_question:
+        st.subheader(f"Question : {user_question}")
+        
+        
+        response = get_claude_response_with_dataset_info(user_question)
+        
+        
+        #st.write(f"Réponse : {response}")
+        
+        question_cle = extract_question_from_response(response)
+        
+        colonnes_concernees = extract_columns_from_response(response)
+        
+        chart_type_concernes = chart_map[question_cle]["Graphiques_fct"]
+        Mesure_mapp_concernes = chart_map[question_cle]["Calculs_fct"]
+        
+        
+        if colonnes_concernees:
+            if Mesure_mapp_concernes:
+                colonnes_valides = [col for col in colonnes_concernees if col in data.columns] 
+                if colonnes_valides:
+                    st.markdown("### 📊 Statistiques et Visualisation des données")
+                    
+                    numerical_colonnes_valides = [col for col in numerical_columns if col in colonnes_valides]
+                    categorical_colonnes_valides = [col for col in categorical_columns if col in colonnes_valides] 
+                    
+                    statistic_indic(filtered_data, numerical_colonnes_valides, Mesure_mapp_concernes)
+                    visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_valides, chart_type_concernes)
+                    
+                else:
+                    st.warning("❌ Les colonnes identifiées ne sont pas valides dans le dataset.")
+        else:
+            st.warning("❌ Aucune colonne n'a été identifiée dans la réponse.")
+                                    
+                                    
+                            
+                    
+            
+    
+
+
+            
+
+
+           
+                    
+                    
