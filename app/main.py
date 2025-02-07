@@ -86,7 +86,7 @@ else:
     #load_dotenv()
     #api_key = os.getenv('claude-api-key') # à décommenter avant deployement sur streamlit
     
-    claude_api_key = st.secrets["CLAUDE_API_KEY"] # à commenter avant deployement sur streamlit
+    api_key = st.secrets["CLAUDE_API_KEY"] # à commenter avant deployement sur streamlit
     
     CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
