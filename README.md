@@ -50,7 +50,7 @@ L'application utilise **Streamlit** pour l'interface, **Claude AI** pour l'inter
 
    - Créez un fichier `.env` à la racine du projet et ajoutez votre clé API :
      ```bash
-     claude-api-key=VOTRE_CLE_API
+     GOOGLE_API_KEY=VOTRE_CLE_API
      ```
 
 4. **Lancer l'application** :
@@ -69,6 +69,14 @@ L'application utilise **Streamlit** pour l'interface, **Claude AI** pour l'inter
 
 - "Quelle est la répartition de la variable par catégorie ?"
 - "Quel est la moyenne de la variable X ?"
+
+## Quelques illustrations
+
+![Dashboard principal](app\data\dsh1.PNG)
+![Dashboard principal](app\data\dsh2.PNG)
+![Dashboard principal](app\data\dsh3.PNG)
+![Dashboard principal](app\data\dsh4.PNG)
+![Dashboard principal](app\data\dsh5.PNG)
 
 ## Contribution
 
