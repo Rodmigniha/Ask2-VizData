@@ -12,6 +12,10 @@ from dotenv import load_dotenv
 import os
 import requests
 import json
+import google.generativeai as genai
+from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
+from langchain_google_genai.llms import GoogleGenerativeAI
+#from langchain_core.prompts import ChatPromptTemplate
 
 from visualization import visualiz
 
@@ -74,6 +78,7 @@ else:
     
     variable_0 = st.sidebar.selectbox("Variable pour filtrer les données", numerical_columns)
     filtered_data = data[data[variable_0] >= min_val0]
+    st.write(data.head(3))
     
     st.subheader("Posez une question sur le dataset")
     user_question = st.text_input("Votre question :", placeholder= f"Ex: Quelle est la médiane de {numerical_columns[0]} ?")
@@ -83,18 +88,19 @@ else:
     dataset_col = data.dtypes.to_dict()
     chart_map =mapp_viz()
 
-    #load_dotenv()
-    #api_key = os.getenv('claude-api-key') # à décommenter avant deployement sur streamlit
+    load_dotenv() # à décommenter avant deployement sur streamlit
+    api_key = os.getenv('GOOGLE_API_KEY') # à décommenter avant deployement sur streamlit
+    #genai.configure(api_key=api_key)
     
-    api_key = st.secrets["CLAUDE_API_KEY"] # à commenter avant deployement sur streamlit
+    #api_key = st.secrets["CLAUDE_API_KEY"] # à commenter avant deployement sur streamlit
     
-    CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
+    #CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
    
-    def get_claude_response_with_dataset_info(question):
+    def get_gemini_response_with_dataset_info(question):
         
         # Formuler un prompt détaillé pour Claude
-        prompt = f"""
+        prompt= f"""
         Voici un dataset avec les informations suivantes :
         
         Taille du dataset : {dataset_size}
@@ -106,44 +112,36 @@ else:
         L'utilisateur pose la question suivante : {question}
 
         Sans justifier ta réponse, Donne la clé du dictionnaire chart_map correspondant le plus à la question
-        de l'utilisateur sous le format JSON suivant {{"Question": ["a"]}} où a et b sont des clés distinctes.
+        de l'utilisateur sous le format JSON suivant {{"Question": ["a- *"]}} où a est l'expression correspondante.
         À la fin de cette réponse, liste les colonnes concernées sous le format JSON suivant :
-    {{"colonnes_concernees": ["nom_colonne1", "nom_colonne2"]}}
+        {{"colonnes_concernees": ["nom_colonne1", "nom_colonne2"]}}
         """
         
-        headers = {
-            "x-api-key": api_key,
-            "anthropic-version": "2023-06-01",
-            "content-type": "application/json",
-        }
         
-        payload = {
-            "model": "claude-2",  
-            "max_tokens": 300,  
-            "messages": [
-                {"role": "user", "content": prompt}
-            ]
-        }
-
-        response = requests.post(CLAUDE_API_URL, headers=headers, json=payload)
-
-        if response.status_code == 200:
-            response_data = response.json()
-            if "content" in response_data and isinstance(response_data["content"], list):
-                
-                formatted_response = "\n".join([item["text"] for item in response_data["content"] if "text" in item])
-                return formatted_response
-            else:
-                return "Format de réponse inattendu."
+        llm = ChatGoogleGenerativeAI(
+            model="gemini-1.5-pro",
+            temperature=0.5,
+            max_tokens=300,
+            timeout=None,
+            max_retries=2,
+        )
+        
+        ai_msg = llm.invoke(prompt)
+    
+        
+        if hasattr(ai_msg, 'content'):
+            reponse = ai_msg.content
+            return reponse
         else:
-            return f"Erreur API : {response.status_code}, {response.text}"
+            return "Erreur : la réponse générée ne contient pas de texte valide."
+        
+
         
     if user_question:
-        st.subheader(f"Question : {user_question}")
-        
-        
-        response = get_claude_response_with_dataset_info(user_question)
-        
+                
+        st.subheader(f"Question : {user_question}")    
+        #response = get_gemini_response_with_dataset_info(user_question)
+        response = get_gemini_response_with_dataset_info(user_question)
         
         #st.write(f"Réponse : {response}")
         

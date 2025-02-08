@@ -8,6 +8,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 from sklearn.cluster import KMeans, DBSCAN
 import matplotlib.pyplot as plt
+import streamlit as st
 
 
 from scipy.stats import norm
@@ -93,13 +94,18 @@ def kruskal_wallis(*groups):
 
 
 def moving_average(series, window=3):
-    return series.rolling(window=window).mean()
+    return series.rolling(window=window, min_periods=1).mean()
 
 
-def linear_trend(series):
+def l_trend(series):
     x = np.arange(len(series))
     slope, intercept, _, _, _ = stats.linregress(x, series)
     return slope, intercept
+
+
+def linear_trend(series):
+    slope, intercept = l_trend(series)  
+    st.write(f"Tendance Linéaire de la colonne gmrt_in_air10 : y = {slope:.3f} * x + {intercept:.3f}")
 
 
 def missing_values(df):

@@ -182,12 +182,30 @@ def plot_histogram_with_density(data, bins=20):
     plt.ylabel("Fréquence")
     plt.grid()
     st.pyplot(fig)
+    
+
+def plot_pie_chart(data, column):
+    fig=plt.figure(figsize=(6, 6))
+    data[column].value_counts().plot.pie(autopct='%1.1f%%', cmap='Blues', startangle=90)
+    plt.ylabel("")  # Supprime le label de l'axe Y
+    plt.title(f"Répartition de {column}")
+    st.pyplot(fig)
+    
+    
+def plot_bar_chart_top10(data, column):
+    top10 = data[column].value_counts().nlargest(10)  # Prend les 10 catégories les plus fréquentes
+    fig = plt.figure(figsize=(8, 5))
+    sns.barplot(x=top10.values, y=top10.index, palette='Blues_r')
+    plt.xlabel("Nombre d'occurrences")
+    plt.ylabel(column)
+    plt.title(f"Top 10 des catégories de {column}")
+    st.pyplot(fig)
 
 def visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_valides, chart_type_concernes):
     
     n=len(numerical_colonnes_valides)
     c=len(categorical_colonnes_valides)
-    if n+c>=1:
+    if n>=1:
         for i in range(n):
             col = numerical_colonnes_valides[i]
             for chart in chart_type_concernes:
@@ -208,11 +226,11 @@ def visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_val
                         for j in range(i+1,n):
                             plot_violin(filtered_data, col, numerical_colonnes_valides[j])
                 elif chart =="plot_correlation_heatmap":
-                    plot_correlation_heatmap(filtered_data)
+                    plot_correlation_heatmap(filtered_data[numerical_colonnes_valides])
                 elif chart =="plot_hexbin":
-                    if i<n-1:
-                        for j in range(i+1,n):
-                            plot_hexbin(filtered_data, col, numerical_colonnes_valides[j])
+                    if c > 0 :
+                        for j in range(c):
+                            plot_hexbin(filtered_data, col, categorical_colonnes_valides[j])
                 elif chart =="plot_line_chart":
                     if i<n-1:
                         for j in range(i+1,n):
@@ -223,6 +241,16 @@ def visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_val
                     plot_line_chart_with_trend(col, window=5)
                 elif chart == "plot_histogram_with_density":
                     plot_histogram_with_density(col, bins=20)
+    
+    if c >0 :
+        for i in range(c):
+            col = categorical_colonnes_valides[i]
+            for chart in chart_type_concernes: 
+                if chart == "plot_pie_chart":
+                    plot_pie_chart(filtered_data,col)
+                elif chart == "plot_bar_chart_top10":
+                    plot_bar_chart_top10(filtered_data,col)
+                    
         
                 
                 
