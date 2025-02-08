@@ -4,7 +4,7 @@
 
 DataViz Genius est une application interactive de visualisation de données permettant d'explorer n'importe quel dataset tabulaire. Grâce à une interface intuitive, elle permet de poser des questions sur les données et d'obtenir des visualisations pertinentes et des statistiques détaillées en réponse.
 
-L'application utilise **Streamlit** pour l'interface, **Claude AI** pour l'interprétation des questions, ainsi que **Seaborn**, **Matplotlib** et **Scikit-learn** pour les analyses et les graphiques.
+L'application utilise **Streamlit** pour l'interface, **gemini** pour l'interprétation des questions, ainsi que **Seaborn**, **Matplotlib** et **Scikit-learn** pour les analyses et les graphiques.
 
 ## Fonctionnalités
 
@@ -20,7 +20,7 @@ L'application utilise **Streamlit** pour l'interface, **Claude AI** pour l'inter
 
 - **Python** (pandas, numpy, seaborn, matplotlib, scikit-learn)
 - **Streamlit** (interface utilisateur)
-- **Claude AI API** (interprétation des questions)
+- **GOOGLE API**  (interprétation des questions)
 - **Dotenv** (gestion des variables d'environnement)
 - **GitHub** (gestion de version et collaboration)
 
