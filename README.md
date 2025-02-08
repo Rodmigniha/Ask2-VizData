@@ -72,11 +72,11 @@ L'application utilise **Streamlit** pour l'interface, **Claude AI** pour l'inter
 
 ## Quelques illustrations
 
-![Dashboard principal](app\data\dsh1.PNG)
-![Dashboard principal](app\data\dsh2.PNG)
-![Dashboard principal](app\data\dsh3.PNG)
-![Dashboard principal](app\data\dsh4.PNG)
-![Dashboard principal](app\data\dsh5.PNG)
+![Dashboard principal](https://github.com/Rodmigniha/Ask2-VizData/blob/main/app/data/dsh1.PNG)
+![Dashboard principal](https://github.com/Rodmigniha/Ask2-VizData/blob/main/app/data/dsh2.PNG)
+![Dashboard principal](https://github.com/Rodmigniha/Ask2-VizData/blob/main/app/data/dsh3.PNG)
+![Dashboard principal](https://github.com/Rodmigniha/Ask2-VizData/blob/main/app/data/dsh4.PNG)
+![Dashboard principal](https://github.com/Rodmigniha/Ask2-VizData/blob/main/app/data/dsh5.PNG)
 
 ## Contribution
 
