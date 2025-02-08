@@ -15,7 +15,7 @@ import json
 import google.generativeai as genai
 from langchain_google_genai.chat_models import ChatGoogleGenerativeAI
 from langchain_google_genai.llms import GoogleGenerativeAI
-#from langchain_core.prompts import ChatPromptTemplate
+
 
 from visualization import visualiz
 
@@ -24,10 +24,10 @@ from ai_interface import (
     extract_question_from_response,
     )
 
-from data_processing import Drop_manq, Norm_data
 from mapping import mapp_viz
 from statistic_indicator import statistic_indic
 
+from dataload import load_data
 
 st.title("Ask 2 DataVIZ")
 st.write(
@@ -36,30 +36,6 @@ st.write(
         et bien plus encore ! 
         """
     )
-
-def load_data():
-    data = st.sidebar.file_uploader("Téléversez un fichier CSV ou Excel", type=["csv", "xlsx"])
-    if data is not None:
-        try:
-            
-            if data.name.endswith(".csv"):
-                data = pd.read_csv(data)
-            else:
-                data = pd.read_excel(data)
-            
-            st.success("Fichier chargé avec succès !")
-            
-            data = Drop_manq(data)
-                    
-            return data
-        
-        except Exception as e:
-            st.error(f"Erreur lors du chargement du fichier : {e}")
-            return pd.DataFrame()
-    else:
-        st.info("Veuillez téléverser un fichier au niveau de la section Dataset pour commencer.")
-        
-    return pd.DataFrame()
 
 
 st.sidebar.subheader("Dataset")
@@ -90,9 +66,8 @@ else:
 
     load_dotenv() # à décommenter avant deployement sur streamlit
     api_key = os.getenv('GOOGLE_API_KEY') # à décommenter avant deployement sur streamlit
-    #genai.configure(api_key=api_key)
     
-    #api_key = st.secrets["CLAUDE_API_KEY"] # à commenter avant deployement sur streamlit
+    #api_key = st.secrets["GOOGLE_API_KEY"] # à commenter avant deployement sur streamlit
     
     #CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 
@@ -140,35 +115,42 @@ else:
     if user_question:
                 
         st.subheader(f"Question : {user_question}")    
-        #response = get_gemini_response_with_dataset_info(user_question)
+        
         response = get_gemini_response_with_dataset_info(user_question)
         
         #st.write(f"Réponse : {response}")
         
         question_cle = extract_question_from_response(response)
         
-        colonnes_concernees = extract_columns_from_response(response)
-        
-        chart_type_concernes = chart_map[question_cle]["Graphiques_fct"]
-        Mesure_mapp_concernes = chart_map[question_cle]["Calculs_fct"]
-        
-        
-        if colonnes_concernees:
-            if Mesure_mapp_concernes:
-                colonnes_valides = [col for col in colonnes_concernees if col in data.columns] 
-                if colonnes_valides:
-                    st.markdown("### 📊 Statistiques et Visualisation des données")
-                    
-                    numerical_colonnes_valides = [col for col in numerical_columns if col in colonnes_valides]
-                    categorical_colonnes_valides = [col for col in categorical_columns if col in colonnes_valides] 
-                    
-                    statistic_indic(filtered_data, numerical_colonnes_valides, Mesure_mapp_concernes)
-                    visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_valides, chart_type_concernes)
-                    
-                else:
-                    st.warning("❌ Les colonnes identifiées ne sont pas valides dans le dataset.")
+        if question_cle =="23- Structure du dataset":
+            st.write(data.shape)
+            st.write(data.describe())
+            st.write(data.dtypes.to_dict())
+            
         else:
-            st.warning("❌ Aucune colonne n'a été identifiée dans la réponse.")
+            colonnes_concernees = extract_columns_from_response(response)
+            
+            chart_type_concernes = chart_map[question_cle]["Graphiques_fct"]
+            Mesure_mapp_concernes = chart_map[question_cle]["Calculs_fct"]
+            
+            
+            
+            if colonnes_concernees:
+                if Mesure_mapp_concernes:
+                    colonnes_valides = [col for col in colonnes_concernees if col in data.columns] 
+                    if colonnes_valides:
+                        st.markdown("### 📊 Statistiques et Visualisation des données")
+                        
+                        numerical_colonnes_valides = [col for col in numerical_columns if col in colonnes_valides]
+                        categorical_colonnes_valides = [col for col in categorical_columns if col in colonnes_valides] 
+                        
+                        statistic_indic(filtered_data, numerical_colonnes_valides, Mesure_mapp_concernes)
+                        visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_valides, chart_type_concernes)
+                        
+                    else:
+                        st.warning("❌ Les colonnes identifiées ne sont pas valides dans le dataset.")
+            else:
+                st.warning("❌ Aucune colonne n'a été identifiée dans la réponse pour plus de visualisation.")
                                     
                                     
                             

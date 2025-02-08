@@ -54,7 +54,7 @@ def plot_scatter(data, x, y):
 
 def plot_violin(data, x, y):
     fig=plt.figure(figsize=(8, 5))
-    sns.violinplot(x=data[x], y=data[y], palette='Blues')
+    sns.violinplot(x=data[x], y=data[y], hue=data[x], palette='Blues', legend=False)
     plt.title(f'Violin plot de {y} selon {x}')
     st.pyplot(fig)
 
@@ -250,6 +250,10 @@ def visualiz(filtered_data, numerical_colonnes_valides, categorical_colonnes_val
                     plot_pie_chart(filtered_data,col)
                 elif chart == "plot_bar_chart_top10":
                     plot_bar_chart_top10(filtered_data,col)
+                elif chart =="plot_violin":
+                    if n>0:
+                        for j in range(n):
+                            plot_violin(filtered_data, col, numerical_colonnes_valides[j])
                     
         
                 

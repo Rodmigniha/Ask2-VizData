@@ -135,7 +135,13 @@ def mapp_viz():
             "Graphiques": ["Courbe de Lorenz", "Histogramme"],
             "Calculs_fct": ["cumulative_frequency"],
             "Graphiques_fct": ["plot_lorenz_curve"]
+        },
+         "23- Structure du dataset": {  
+            "Calculs_fct": ["shape", "describe", "info"],
+            "Graphiques_fct": []
         }
+        
+        
     }
     return mapping
 
