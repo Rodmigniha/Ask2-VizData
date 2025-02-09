@@ -46,7 +46,7 @@ L'application utilise **Streamlit** pour l'interface, **gemini** pour l'interpr�
    poetry install
    ```
 
-3. **Configurer la clé API de Claude AI** :
+3. **Configurer la clé API** :
 
    - Créez un fichier `.env` à la racine du projet et ajoutez votre clé API :
      ```bash
