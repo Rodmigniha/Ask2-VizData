@@ -2,7 +2,7 @@
 
 ## Description
 
-DataViz Genius est une application interactive de visualisation de données permettant d'explorer n'importe quel dataset tabulaire. Grâce à une interface intuitive, elle permet de poser des questions sur les données et d'obtenir des visualisations pertinentes et des statistiques détaillées en réponse.
+Ask2-VizData est une application interactive de visualisation de données permettant d'explorer n'importe quel dataset tabulaire. Grâce à une interface intuitive, elle permet de poser des questions sur les données et d'obtenir des visualisations pertinentes et des statistiques détaillées en réponse.
 
 L'application utilise **Streamlit** pour l'interface, **gemini** pour l'interprétation des questions, ainsi que **Seaborn**, **Matplotlib** et **Scikit-learn** pour les analyses et les graphiques.
 
@@ -37,7 +37,7 @@ L'application utilise **Streamlit** pour l'interface, **gemini** pour l'interpr�
 
    ```bash
    git clone https://github.com/Rodmigniha/Ask2-VizData.git
-   cd dataviz-genius
+   cd Ask2-VizData
    ```
 
 2. **Créer un environnement virtuel et installer les dépendances** :
